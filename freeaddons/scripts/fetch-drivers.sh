@@ -48,19 +48,10 @@ mkdir -p "$DESTDIR/drivers/box/vbox"
     bsdtar -xf "$CACHE/VBoxGuestAdditions_7.0.10.iso" \
         -C "$DESTDIR/drivers/box/vbox" VBoxWindowsAdditions-x86.exe
 
-# ── Bochs VBE miniport (BOXV 9X/NT + boxvnt snapshots) ───────────────
-# Donor BOXV* (BOXVMINI.DRV/BOXVIDEO.SYS) matches the VBEMP-style Bochs
-# VBE family. Pinned archival copies, verified by INF content at build.
-note "drivers/BOXV + drivers/box snapshots <- archival Bochs VBE set (see manifest)"
-# TODO(verify): pin exact archival URLs after confirming INF Provider strings.
-
-# ── LSI Logic SYM_HI SCSI (SYM_HI.MPD 4.15.00, 2000) ─────────────────
-note "drivers/LSI <- LSI Logic legacy SYM_HI freeware driver (see manifest)"
-# TODO(verify): pin archival URL (Broadcom legacy / archive.org mirror).
-
-# ── IDT STAC9700 AC'97 audio (5.10.00.3696, 2002) ────────────────────
-note "drivers/STAC97 <- IDT/SigmaTel OEM AC97 freeware driver (see manifest)"
-# TODO(verify): pin archival URL.
+# ── Proprietary Win9x OEM Drivers ────────────────────────────────────
+# Proprietary legacy drivers (LSI SYM_HI SCSI, SigmaTel STAC9700 AC97,
+# Bochs VBE) are excluded from this libre script. Users who require them
+# can use fetch-win98-oem-drivers.sh to fold them into a local build.
 
 # ── VirtIO guest floppy (virtio-win 0.1.173, last era with XP + .vfd) ─
 VIRTIO_BASE=https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.173-9

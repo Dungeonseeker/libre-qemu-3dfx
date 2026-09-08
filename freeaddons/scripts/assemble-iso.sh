@@ -13,6 +13,12 @@ OUT="$ROOT/freeaddons/freeaddons.iso"
 FETCH=1
 [ "$1" = "--skip-fetch" ] && FETCH=0
 
+# Deterministic timestamp for bit-for-bit reproducible ISO builds
+if [ -z "$SOURCE_DATE_EPOCH" ]; then
+    SOURCE_DATE_EPOCH=$(git -C "$ROOT" log -1 --pretty=%ct 2>/dev/null || echo 1700000000)
+    export SOURCE_DATE_EPOCH
+fi
+
 rm -rf "$STAGE"
 mkdir -p "$STAGE/win32" "$STAGE/drivers"
 
@@ -87,12 +93,12 @@ fi
 # ── SOURCES.txt provenance ──────────────────────────────────────────
 {
     echo "Freeaddons — provenance log (reproducible inputs)"
-    echo "Built: `date -u '+%Y-%m-%d %H:%M:%S UTC'`"
+    echo "Built: $(date -u -d "@$SOURCE_DATE_EPOCH" '+%Y-%m-%d %H:%M:%S UTC' 2>/dev/null || date -u '+%Y-%m-%d %H:%M:%S UTC')"
     echo ""
     echo "== in-tree builds =="
     echo "win32/wrapfx <- qemu-3dfx wrappers/3dfx (open source, this repo)"
     echo "win32/wrapgl <- qemu-3dfx wrappers/mesa (open source, this repo)"
-    echo "win32/wine/<ver> <- wined3d-windows output/<ver>-nt (open source, this repo)"
+    echo "win32/wine/<ver> <- wined3d-windows output/<ver> (open source, this repo)"
     echo "win32/wine/ddthru <- freeaddons/src/ddthru (open source, this repo)"
     echo "win32/openglide <- qemu-xtra openglide (LGPL, kjliew/qemu-xtra)"
     echo ""
@@ -113,6 +119,9 @@ for dll in "$STAGE"/win32/wine/*/*.dll "$STAGE"/win32/wrapfx/*.dll \
     fi
 done
 [ "$FAIL" = "0" ] && echo "PE checks OK" || exit 1
+
+# ── Normalize mtime for bit-for-bit reproducible ISO ────────────────
+find "$STAGE" -exec touch -h -d "@$SOURCE_DATE_EPOCH" {} +
 
 # ── ISO (Joliet for Win9x-era readability + Rock Ridge) ──────────────
 xorriso -as mkisofs -J -R -l -V FREEADDONS -o "$OUT" "$STAGE" 2>&1 | tail -n 3
