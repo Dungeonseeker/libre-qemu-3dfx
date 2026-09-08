@@ -1,0 +1,23 @@
+#backup
+/backup/
+
+# generated and temporary files
+*.o
+*.bak
+*.tmp
+*.gen
+*.exe
+*.res
+*.a
+*.dll
+*.lib
+
+# new files and not ready for public repo
+*.new
+
+# release and testing scripts
+*.bat
+
+# user defined configuration
+config.mk-msc
+

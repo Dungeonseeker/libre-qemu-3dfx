@@ -1,0 +1,36 @@
+# Private files & VM disk images (CRITICAL)
+private/
+*.qcow2
+*.qcw
+*.img
+*.vmdk
+*.vdi
+
+# Local build trees
+myqemu/
+pc-bios
+
+# FreeAddons build staging, caches, and generated ISOs
+freeaddons/*.iso
+freeaddons/stage-fetch/
+freeaddons/iso-staging/
+freeaddons/scripts/.pkgcache-*/
+freeaddons/src/ddthru/*.dll
+freeaddons/src/ddthru/*.def
+
+# Wrapper build artifacts
+wrappers/**/build/
+wrappers/**/*.o
+wrappers/**/*.obj
+wrappers/**/*.dxe
+wrappers/**/*.map
+wrappers/**/*.a
+wrappers/**/*.ovl
+wrappers/**/stamp.h
+
+# Editor & OS metadata
+.DS_Store
+.vscode/
+.idea/
+*~
+*.swp

@@ -1,0 +1,6 @@
+FUNC1(Direct3DCreate8, DDERR_GENERIC)
+FUNC0(DebugSetMute, 0)
+FUNC4(D3D8GetSWInfo, 0)
+FUNC4(ValidatePixelShader, E_FAIL)
+FUNC5(ValidateVertexShader, E_FAIL)
+FUNC0(CheckFullscreen, 0)

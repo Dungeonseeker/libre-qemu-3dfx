@@ -17,22 +17,41 @@ Witness, experience and share your thoughts on modern CPU/GPU prowess for retro 
 - VOGONS forums (https://www.vogons.org)
 - Wiki (https://github.com/kjliew/qemu-3dfx/wiki)
 ## Building QEMU
-Following instructions are based on `MSYS2/mingw-w64` BASH shell environment on modern Windows. It is meant to be simple and minor variations are inevitable due to different flavors of Linux distributions.
 
-Simple guide to apply the patch:<br>
-(using `00-qemu92x-mesa-glide.patch`)
+### Host Build Dependencies
+- **Debian / Ubuntu**:
+  ```bash
+  sudo apt install git build-essential ninja-build meson libglib2.0-dev libpixman-1-dev libsdl2-dev pkg-config python3-venv wget rsync
+  ```
+- **Arch Linux**:
+  ```bash
+  sudo pacman -S git base-devel ninja meson glib2 pixman sdl2 wget rsync
+  ```
+- **Fedora**:
+  ```bash
+  sudo dnf install git make gcc ninja-build meson glib2-devel pixman-devel SDL2-devel pkgconf-pkg-config wget rsync
+  ```
+- **Windows (MSYS2 `mingw64` shell)**:
+  ```bash
+  pacman -S base-devel mingw-w64-x86_64-toolchain ninja meson mingw-w64-x86_64-glib2 mingw-w64-x86_64-pixman mingw-w64-x86_64-SDL2 wget rsync
+  ```
 
-    $ mkdir ~/myqemu && cd ~/myqemu
-    $ git clone https://github.com/kjliew/qemu-3dfx.git
-    $ cd qemu-3dfx
-    $ wget https://download.qemu.org/qemu-9.2.2.tar.xz
-    $ tar xf qemu-9.2.2.tar.xz
-    $ cd qemu-9.2.2
-    $ rsync -r ../qemu-0/hw/3dfx ../qemu-1/hw/mesa ./hw/
-    $ patch -p0 -i ../00-qemu92x-mesa-glide.patch
-    $ bash ../scripts/sign_commit
-    $ mkdir ../build && cd ../build
-    $ ../qemu-9.2.2/configure && make
+### Guide to Apply Patch & Build
+(using `00-qemu92x-mesa-glide.patch` with QEMU 9.2.2):
+
+```bash
+mkdir ~/myqemu && cd ~/myqemu
+git clone https://github.com/kjliew/qemu-3dfx.git
+cd qemu-3dfx
+wget https://download.qemu.org/qemu-9.2.2.tar.xz
+tar xf qemu-9.2.2.tar.xz
+cd qemu-9.2.2
+rsync -r ../qemu-0/hw/3dfx ../qemu-1/hw/mesa ./hw/
+patch -p0 -i ../00-qemu92x-mesa-glide.patch
+bash ../scripts/sign_commit
+mkdir ../build && cd ../build
+../qemu-9.2.2/configure --target-list=i386-softmmu,x86_64-softmmu --enable-sdl && make -j$(nproc)
+```
 
 ## Building Guest Wrappers
 **Requirements:**
@@ -66,22 +85,17 @@ Simple guide to apply the patch:<br>
  - Run `INSTDRV.EXE`, require Administrator Priviledge  
  - Copy `OPENGL32.DLL` to `Game Installation` folders
  
-## Donation
-If this project helps you relive the nostalgic memory of Good Old Windows Games, you can now donate in the course of supporting **Games Preservation** with QEMU. Your donation also motivates and encourages further research in making QEMU the ultimate platform for Retro Windows Games.
+## DirectDraw & Direct3D (WineD3D) Acceleration
+Universal WineD3D libraries provide hardware-accelerated DirectDraw, Direct3D 8, and Direct3D 9 for Windows 95, 98, ME, 2000, and XP guests inside QEMU.
+- **100% Free and Open Source (LGPL v2.1)**: Built from clean Wine sources with built-in D3DKMT texture emulation and single-threaded passthrough hooks.
+- **Pre-packaged in Freeaddons**: Mount `freeaddons.iso` as a CD-ROM in QEMU and run:
+  ```bat
+  freeaddons-get install 6.0.4 d3d9
+  ```
+- **Source code & build instructions**: Bundled in [`wined3d-windows/`](wined3d-windows/), originally created by [@startergo](https://github.com/startergo/wined3d-windows).
 
-For $89.99 donation, you will deserve the following donor's privileges:
-- QEMU binary package built for platform of your choice (choose **ONE**: Windows 10/11, Ubuntu, etc.)
-- QEMU-enhanced OpenGLide **Host-side wrappers** built for platform of your choice (choose **ONE**: Windows 10/11, Ubuntu, etc.)
-- QEMU-enhanced [**WineD3D libraries for Win98/2K/ME/XP VMs**](https://www.winehq.org) for DirectDraw/Direct3D games up to DirectX 9.0c
-- Game controllers support with [**QEMU USB Gamepad**](https://github.com/kjliew/qemu-3dfx/wiki/QEMU-USB-Gamepad)
-- SDL2 clipboard sharing through built-in [**QEMU vdagent**](https://www.kraxel.org/blog/2021/05/qemu-cut-paste/)
-- OpenGLide **Guest-side wrappers** for Windows
-- Elect up to 5 games for priority support and your name as the honorary sponsor in the supported & tested list of games.
-
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=XE47KTASERX4A)
-### A Note to Donation
-The purpose of the donation is for preserving retailed CD/DVD games in their originality. It may be used to purchase the game online or from local thrift shops. The donation is **NOT** the ticket for one to learn how to use QEMU Virtual Machine in general. Sometimes, it may be difficult to get virtualization acceleration working and that would result in serious degradation of game experience with QEMU. It is a **willing donation pledge and non-refundable**. Many classic Windows games also have re-releases from GOG/Steam that work on modern Windows and Linux. It can be an option to consider before making a donation.
-
-Donations without leaving notes on **Platform of Choice** are regarded as upper-class donors who have no desire in exercising donor's privileges. A measure to avoid unneccessary spamming on emails. Donors are expected to proactively follow up the communication to exercise donor's privileges as wished. All donations are tracked in PayPal transaction history. Only **"ONE"** platform of choice per donation. Upgrades eligibility are limited to the **SAME** platform of choice.
-### About Game Election
-The game election serves the purpose of allocating additional focus and resources to make them work. Sometimes, it means considerable efforts in researching, debugging and tracing the games to root cause the failures and come up with solutions. It is **OPTIONAL** to make game election upon donation. My YouTube channel has video demos of games which already worked and more may be showing up periodically. It is typically a safe assumption that games using the same engine (IdTech1/2/3, LithTech, Unreal etc.) would work, too. The _N_ counts of eligibility would only be accounted once the game were made to work. If upgrades were neccessary, it would be a **FREE upgrade** for QEMU binary packages.
+## License & Credits
+- **QEMU**: GNU General Public License (GPL)
+- **Wine / WineD3D**: GNU Lesser General Public License (LGPL v2.1)
+- **qemu-3dfx**: OpenGLide, Glide, and MESA GL pass-through for QEMU guests by [@kjliew](https://github.com/kjliew/qemu-3dfx)
+- **wined3d-windows**: Standalone build system, compatibility shims, and passthrough hooks by [@startergo](https://github.com/startergo/wined3d-windows)

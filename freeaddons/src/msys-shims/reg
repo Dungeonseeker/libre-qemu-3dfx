@@ -1,0 +1,19 @@
+#!/bin/sh
+# reg — minimal registry-import helper for the Freeaddons shell.
+# Usage: reg import [REGEDIT4 .reg]
+# On NT it delegates to the system reg.exe; on 9x it converts and feeds
+# the file to regedit, matching historical msys helper behavior.
+
+WINOS=`uname | sed "s/.*_//"`
+ARGS=$1
+if [ x$ARGS == ximport ]; then
+    shift
+    unix2dos $@ 2>/dev/null
+    if [ "$WINOS" == "NT-5.0" ] || [ "$WINOS" == "NT-5.1" ]; then
+        $SYSTEMROOT/system32/reg.exe $ARGS $@
+    else
+        cmd //c regedit $@
+    fi
+else
+    echo Usage: reg import [ REGEDIT4 .reg ]
+fi

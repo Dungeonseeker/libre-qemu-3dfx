@@ -1,0 +1,348 @@
+#!/bin/sh
+# freeaddons-get — guest-side Wine/DirectX addon manager for Freeaddons.
+#
+# Behavior-compatible with the donor vmaddons wine-get CLI so existing
+# guides keep working: builds, ddthru, glinfo, install, re4gen, update,
+# updogl, updoal, dsoal, updfxg, upgrade, version, infoexe, gr2gl,
+# vidmodes, visrgb, trmod.
+#
+# Layout assumed relative to this script's directory:
+#   ../wrapgl  (opengl32.dll, wglinfo, bxvmodes)
+#   ../wrapfx  (glide DLLs, fxptl.sys/fxmemmap.vxd)
+#   ../dsoal   (dsound + OpenAL)
+#   <ver>/     (per-Wine-version ddraw/d3d8/d3d9/wined3d.dll)
+
+show_help() {
+    REV=`strings $DIR/../wrapfx/glide2x.dll 2>/dev/null | grep \ build | sed "s/\-.*//"`
+    echo "Freeaddons@$REV"
+    echo "Open-source guest addons. No rights reserved over your games."
+    echo ""
+    echo "Usage: freeaddons-get command <version> <dd> <path>"
+    echo "Addons=$DIR"
+    echo "Available commands:"
+    echo "    builds      - show bundled Wine build info"
+    echo "    ddthru      - one-time System Update for DirectX"
+    echo "    glinfo      - show OpenGL details"
+    echo "    install     - install <version> DLLs"
+    echo "    re4gen      - generate REGEDIT4 import"
+    echo "    update      - update DLLs"
+    echo "    updogl      - update OPENGL32.DLL"
+    echo "    upgrade     - (down/up)grade DLLs to <version>"
+    echo "    version     - query DLLs version"
+}
+
+check_winever() {
+    if [ ! -f $@/build-timestamp ]; then
+        echo "Available Wine version(s): "
+        ls $DIR | grep ^[1-9]\. | sort -r
+        exit 1
+    fi
+}
+
+show_stamp() {
+    printf "Wine-%s " `basename $@`
+    head -n 1 $@/build-timestamp
+}
+
+# REGEDIT4 templates (functional Direct3D registry data).
+gen_re4apps() {
+#gen_re4apps##REGEDIT4
+#gen_re4apps##
+#gen_re4apps##[-HKEY_CURRENT_USER\Software\Wine\AppDefaults\#prog#\Direct3D]
+#gen_re4apps##[HKEY_CURRENT_USER\Software\Wine\AppDefaults\#prog#\Direct3D]
+#gen_re4apps##"ScaleWindow"=dword:828001e0
+#gen_re4apps##"UseGLSL"="disabled"
+#gen_re4apps##
+if [ -f $1 ]; then
+    if [ $VGL == Apple ]; then
+        grep ^\#gen_re4apps\#\# $0 | sed "s/^\#gen_re4apps\#\#//;s/\#prog\#/`basename $1`/" | \
+            sed "5i \"OffscreenRenderingMode\"=\"backbuffer\""
+    else
+        grep ^\#gen_re4apps\#\# $0 | sed "s/^\#gen_re4apps\#\#//;s/\#prog\#/`basename $1`/"
+    fi
+fi
+}
+
+gen_re4init() {
+#gen_re4init##REGEDIT4
+#gen_re4init##
+#gen_re4init##[-HKEY_CURRENT_USER\Software\Wine\AppDefaults]
+#gen_re4init##[-HKEY_CURRENT_USER\Software\Wine\Direct3D]
+#gen_re4init##[HKEY_CURRENT_USER\Software\Wine\Direct3D]
+#gen_re4init##"SwapInterval"=dword:00000000
+#gen_re4init##"VideoMemorySize"="896"
+#gen_re4init##
+    if [ x$1 == xscale ]; then
+        if [ $VGL == Apple ]; then
+            grep ^\#gen_re4init\#\# $0 | sed "s/^\#gen_re4init\#\#//" | \
+                sed "6i \"ScaleWindow\"=dword:04000300" | \
+                sed "6i \"OffscreenRenderingMode\"=\"backbuffer\"" | \
+                tee /tmp/reg && reg import /tmp/reg
+        else
+            grep ^\#gen_re4init\#\# $0 | sed "s/^\#gen_re4init\#\#//" | \
+                sed "6i \"ScaleWindow\"=dword:04000300" | \
+                tee /tmp/reg && reg import /tmp/reg
+        fi
+    else
+        grep ^\#gen_re4init\#\# $0 | sed "s/^\#gen_re4init\#\#//" | \
+            tee /tmp/reg && reg import /tmp/reg
+    fi
+}
+
+DIR=`dirname $0`
+if [ ! -d $DIR/../wrapgl ] || [ ! -d $DIR/../wrapfx ]; then
+    echo Invalid Freeaddons ISO layout
+    exit 1
+fi
+EXC=`echo $DIR | sed "s/.*freeaddons//;s/\(.*\)/\1\//"`
+if [ x$EXC == x\.\/ ]; then
+    EXC=\/win32\/wine\/
+fi
+if [ ! -z $1 ]; then
+    CMD=$1;shift
+fi
+
+case $CMD in
+    install)
+        if [ ! -z $1 ]; then
+            VER=$1;shift
+        fi
+        if [ -z $VER ]; then
+            echo "Missing Wine <version>"
+            exit 1
+        fi
+        check_winever $DIR/$VER
+        if [ ! -z $1 ]; then
+            DD=$1;shift
+        fi
+        if [ ! -f $DIR/$VER/$DD.dll ]; then
+            echo "Missing <dd> for DirectX version"
+            echo "    ddraw - DirectX 7.0 or lower"
+            echo "    d3d8  - DirectX 8.x"
+            echo "    d3d9  - DirectX 9.x"
+            exit 1
+        fi
+        ARGS=$@
+        if [ -z "$ARGS" ]; then
+            ARGS=.
+        fi
+        cp -vf $DIR/$VER/{$DD,wined3d}.dll $DIR/../wrapgl/opengl32.dll $ARGS
+        show_stamp $DIR/$VER
+        ;;
+    update)
+        ARGS=$@
+        if [ -z "$ARGS" ]; then
+            ARGS=.
+        fi
+        for i in $(find $ARGS | grep -v $EXC | grep -i wined3d\.dll$); do
+            VER=`strings $i | grep Wine\  | sed "s/Wine\ //"`
+            check_winever $DIR/$VER
+            if [ -f `dirname $i`/d3d9.dll ]; then
+                cp -vf $DIR/$VER/d3d9.dll `dirname $i`/
+            fi
+            if [ -f `dirname $i`/d3d8.dll ]; then
+                cp -vf $DIR/$VER/d3d8.dll `dirname $i`/
+            fi
+            if [ -f `dirname $i`/ddraw.dll ]; then
+                cp -vf $DIR/$VER/ddraw.dll `dirname $i`/
+            fi
+            cp -vf $DIR/$VER/wined3d.dll $DIR/../wrapgl/opengl32.dll `dirname $i`/
+            show_stamp $DIR/$VER
+        done
+        ;;
+    upgrade)
+        if [ ! -z $1 ]; then
+            VER=$1;shift
+        fi
+        if [ -z $VER ]; then
+            echo "Missing Wine <version>"
+            exit 1
+        fi
+        check_winever $DIR/$VER
+        ARGS=$@
+        if [ -z "$ARGS" ]; then
+            ARGS=.
+        fi
+        for i in $(find $ARGS | grep -v $EXC | grep -i wined3d\.dll$); do
+            if [ -f `dirname $i`/d3d9.dll ]; then
+                cp -vf $DIR/$VER/d3d9.dll `dirname $i`/
+            fi
+            if [ -f `dirname $i`/d3d8.dll ]; then
+                cp -vf $DIR/$VER/d3d8.dll `dirname $i`/
+            fi
+            if [ -f `dirname $i`/ddraw.dll ]; then
+                cp -vf $DIR/$VER/ddraw.dll `dirname $i`/
+            fi
+            cp -vf $DIR/$VER/wined3d.dll $DIR/../wrapgl/opengl32.dll `dirname $i`/
+            show_stamp $DIR/$VER
+        done
+        ;;
+    version)
+        ARGS=$@
+        if [ -z "$ARGS" ]; then
+            ARGS=.
+        fi
+        for i in $(find $ARGS | grep -v $EXC | grep -i wined3d.dll$); do
+            VER=`strings $i | grep Wine\  | sed "s/\(Wine\)\ /\1\-/"`
+            if [ -z "$VER" ]; then
+                echo -n $i
+                echo " - Missing WINE version"
+                ls -lh $i
+                exit 1
+            fi
+            echo -n $i
+            echo -n -e '\e[1;35m'
+            echo -n " $VER"
+            echo -e '\e[0;0m'
+        done
+        ;;
+    builds)
+        for i in $(find $DIR/ | grep build\-timestamp | sort); do
+            echo -n -e '\e[1;35m'
+            echo -n `dirname $i`" " | sed "s/.*wine\//\.\//;s/\.\//Wine\-/"
+            echo -n -e '\e[0;0m'
+            cat $i
+        done
+        ;;
+    re4gen)
+        VGL=$($DIR/../wrapgl/wglinfo | grep ^Vendor | sed "s/.*:\ //;s/\ .*//")
+        if expr "`echo $@`" : "\(init\)" >/dev/null; then
+            gen_re4init `echo $@ | sed "s/init,//"`
+            exit 0
+        fi
+        if [ ! -z $@ ]; then
+            gen_re4apps $@
+        fi
+        ;;
+    updogl)
+        ARGS=$@
+        if [ -z "$ARGS" ]; then
+            ARGS=.
+        fi
+        for i in $(find $ARGS | grep -v wrapgl | grep -i opengl32.dll$); do
+            cp -vf $DIR/../wrapgl/opengl32.dll `dirname $i`/
+        done
+        ;;
+    updoal)
+        ARGS=$@
+        if [ -z "$ARGS" ]; then
+            ARGS=.
+        fi
+        for i in $(find $ARGS | grep -v dsoal | grep -i libopenal\-1.dll$); do
+            cp -vf $DIR/../dsoal/{dsound,libopenal-1}.dll `dirname $i`/
+        done
+        for i in $(find $ARGS | grep -v dsoal | grep -i openal32.dll$); do
+            cp -vf $DIR/../dsoal/libopenal-1.dll `dirname $i`/openal32.dll
+        done
+        ;;
+    dsoal)
+        ARGS=$@
+        if [ -z "$ARGS" ]; then
+            ARGS=.
+        fi
+        cp -vf $DIR/../dsoal/{dsound,libopenal-1}.dll $ARGS
+        ;;
+    updfxg)
+        if [ -z "$SYSTEMROOT" ]; then
+            if [ -z "$WINBOOTDIR" ]; then
+                echo Unresolved system path
+                exit 1
+            fi
+            if [ ! -f $WINBOOTDIR/SYSTEM/fxmemmap.vxd ]; then
+                cp -vf $DIR/../wrapfx/fxmemmap.vxd $WINBOOTDIR/SYSTEM/
+            fi
+            cp -vf $DIR/../wrapfx/{glide2x,glide3x}.dll $WINBOOTDIR/SYSTEM/
+            cp -vf $DIR/../wrapfx/glide2x.ovl $WINBOOTDIR/
+            exit 0
+        fi
+        if [ ! -f $SYSTEMROOT/system32/drivers/fxptl.sys ]; then
+            cp -vf $DIR/../wrapfx/fxptl.sys $SYSTEMROOT/system32/drivers/
+        fi
+        cp -vf $DIR/../wrapfx/{glide2x,glide3x}.dll $SYSTEMROOT/system32/
+        ;;
+    glinfo)
+        $DIR/../wrapgl/wglinfo | head -n 13
+        ;;
+    infoexe)
+        if objdump -f $1 2>/dev/null | sed "s/.*\(file\ format\)/\1/" | \
+            grep pei\-; then
+            objdump -h $1 | grep -e ^Idx -e \.text
+            if [ -z "$2" ]; then
+                md5sum $1
+            else
+                echo -n "md5_page \""
+                dd if=$1 bs=256 count=16 skip=`printf "%d" $2` 2>/dev/null | \
+                    md5sum | sed "s/\ \*\-/\"\ offset\ $200/"
+            fi
+        fi
+        ;;
+    gr2gl)
+        ARGS=$@
+        if [ -z "$ARGS" ]; then
+            ARGS=.
+        fi
+        GR2X=$(find $DIR/../ -maxdepth 2 -type f | grep -v wrapfx | grep glide2x)
+        cp -vf $GR2X $DIR/../wrapgl/opengl32.dll $ARGS
+        ;;
+    vidmodes)
+        if [ x$@ == xinf ]; then
+            for i in 8 16 32; do
+            $DIR/../wrapgl/bxvmodes | grep ^\  | sed "s/\*/\ /" | sort | \
+                sed "s/\ //g;s/x/,/;s/\(.*\)/HKR,\"MODES#$i#\1\"/;s/#/\\\//g"
+            done
+            echo ""
+            cat $WINBOOTDIR/INF/BOXV9X.INF | grep -A 1 "^\[Strings\]"
+            exit 0
+        fi
+        $DIR/../wrapgl/bxvmodes
+        ;;
+    visrgb)
+        for i in $($DIR/../wrapgl/wglinfo | grep ^GL_); do
+            echo $i
+        done | grep -e framebuffer_sRGB -e _sRGB_decode | tee wrapgl32.ext
+        echo ContextSRGB,1>>wrapgl32.ext
+        ;;
+    trmod)
+        MODS=" \
+            D3D9.DLL D3D8.DLL DDRAW.DLL WINED3D.DLL WINED3D.MOD WINE.REG \
+            DSOUND.DLL LIBOPENAL-1.DLL \
+            OPENGL32.DLL WRAPGL32.EXT GLIDE.CFG \
+        "
+        for i in $MODS; do
+            if [ -f $i ]; then
+                NTMP=`echo $i | sed "s/./_/"`
+                NNEW=`echo $i | tr [A-Z] [a-z]`
+                mv -v $i $NTMP && mv -v $NTMP $NNEW
+            fi
+        done
+        ;;
+    ddthru)
+        if expr "`echo $@`" : "\(undo\)" >/dev/null; then
+            if [ -z "$SYSTEMROOT" ]; then
+                if [ -z "$WINBOOTDIR" ]; then
+                    echo Unresolved system path
+                    exit 1
+                fi
+                SYSTEMDIR=$WINBOOTDIR/SYSTEM
+                CACHE=../SYSBCKUP
+            else
+                SYSTEMDIR=$SYSTEMROOT/system32
+                CACHE=dllcache
+            fi
+            [ -f $SYSTEMDIR/$CACHE/ddrawwq.dll ] && \
+                mv -v $SYSTEMDIR/$CACHE/ddrawwq.dll $SYSTEMDIR/$CACHE/ddraw.dll
+            [ -f $SYSTEMDIR/$CACHE/dsoundwq.dll ] && \
+                mv -v $SYSTEMDIR/$CACHE/dsoundwq.dll $SYSTEMDIR/$CACHE/dsound.dll
+            [ -f $SYSTEMDIR/ddrawwq.dll ] && \
+                mv -v $SYSTEMDIR/ddrawwq.dll $SYSTEMDIR/ddraw.dll
+            [ -f $SYSTEMDIR/dsoundwq.dll ] && \
+                mv -v $SYSTEMDIR/dsoundwq.dll $SYSTEMDIR/dsound.dll
+            exit 0
+        fi
+        cd `echo $DIR | sed "s/win32.*//"`;
+        [ -x ./freeaddons.sh ] && ./freeaddons.sh
+        ;;
+    *)
+        show_help
+        ;;
+esac

@@ -1,0 +1,12 @@
+#!/bin/sh
+# msyspath — print the Win32 form of a path (default: cwd).
+# Upstream MSYS ships this as a binary we could not locate in any 1.0.18
+# package; this equivalent uses the shell's own pwd -W mapping.
+p="${1:-.}"
+if [ -d "$p" ]; then
+    (cd "$p" && pwd -W)
+else
+    d=`dirname "$p"`
+    b=`basename "$p"`
+    (cd "$d" 2>/dev/null && printf "%s/%s\n" "`pwd -W`" "$b")
+fi
