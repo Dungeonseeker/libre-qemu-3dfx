@@ -64,19 +64,8 @@ if [ -f $SYSTEMDIR/ddrawwq.dll ]; then
 else
     cp -f $SYSTEMDIR/ddraw.dll $SYSTEMDIR/$CACHE/ddrawwq.dll
 fi
-if [ -f $SYSTEMDIR/dsoundwq.dll ]; then
-    diff $SYSTEMDIR/dsoundwq.dll $SYSTEMDIR/$CACHE/dsoundwq.dll
-    if [ $? -ne 0 ]; then
-        echo ERROR: DSOUNDWQ already exist but mismatch
-        exit 1
-    fi
-else
-    cp -f $SYSTEMDIR/dsound.dll $SYSTEMDIR/$CACHE/dsoundwq.dll
-fi
 cp -f win32/wine/$DDTHRU/ddraw.dll $SYSTEMDIR/$CACHE/ddraw.dll
 cp -f $SYSTEMDIR/$CACHE/ddrawwq.dll $SYSTEMDIR/
 cp -f $SYSTEMDIR/$CACHE/ddraw.dll $SYSTEMDIR/
-cp -f win32/wine/$DDTHRU/dsound.dll $SYSTEMDIR/$CACHE/dsound.dll
-cp -f $SYSTEMDIR/$CACHE/dsoundwq.dll $SYSTEMDIR/
-cp -f $SYSTEMDIR/$CACHE/dsound.dll $SYSTEMDIR/
 echo "SUCCESS: $DDTHRU installed"
+

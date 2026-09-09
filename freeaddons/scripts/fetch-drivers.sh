@@ -70,5 +70,30 @@ get https://openal-soft.org/openal-binaries/openal-soft-1.23.1-bin.zip \
 note "win32/dsoal <- OpenAL Soft 1.23.1 binaries (LGPL, openal-soft.org)"
 mkdir -p "$DESTDIR/dsoal"
 
+# Extract OpenAL Soft 32-bit runtime and info tool
+7z e -y -o"$DESTDIR/dsoal" "$CACHE/openal-soft-1.23.1-bin.zip" \
+    openal-soft-1.23.1-bin/bin/Win32/soft_oal.dll \
+    openal-soft-1.23.1-bin/openal-info32.exe > /dev/null
+mv -f "$DESTDIR/dsoal/soft_oal.dll" "$DESTDIR/dsoal/libopenal-1.dll"
+mv -f "$DESTDIR/dsoal/openal-info32.exe" "$DESTDIR/dsoal/openal-info.exe"
+
+# Build DSOAL DirectSound wrapper (dsound.dll) from source if not cached
+if [ ! -f "$CACHE/dsoal-dsound.dll" ]; then
+    echo "Building DSOAL dsound.dll from source..."
+    DSOAL_TMP=$(mktemp -d)
+    tar -xf "$CACHE/dsoal-master.tar.gz" -C "$DSOAL_TMP"
+    cmake -S "$DSOAL_TMP/dsoal-master" -B "$DSOAL_TMP/dsoal-master/build" \
+        -DCMAKE_SYSTEM_NAME=Windows \
+        -DCMAKE_CXX_COMPILER=i686-w64-mingw32-g++ \
+        -DCMAKE_CXX_FLAGS="-D_UCRT -static-libgcc -static-libstdc++" \
+        -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++" > /dev/null
+    make -C "$DSOAL_TMP/dsoal-master/build" -j$(nproc) dsound > /dev/null
+    i686-w64-mingw32-strip --strip-unneeded "$DSOAL_TMP/dsoal-master/build/dsound.dll"
+    cp "$DSOAL_TMP/dsoal-master/build/dsound.dll" "$CACHE/dsoal-dsound.dll"
+    rm -rf "$DSOAL_TMP"
+fi
+cp "$CACHE/dsoal-dsound.dll" "$DESTDIR/dsoal/dsound.dll"
+
 [ "$RECORD" = "1" ] && mv "$MANIFEST.new" "$MANIFEST" && echo "manifest written"
 echo "fetch-drivers done (review SOURCES + TODO(verify) items)"
+
