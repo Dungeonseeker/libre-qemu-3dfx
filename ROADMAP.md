@@ -4,7 +4,8 @@ TODO for Beta:
 
 ### Game Testing
 - 3DMark2001 SE on Windows 98 and Windows XP (DirectX 8.1)
-- Need for Speed: Underground 2 (DirectX 9.0)
+- ~~Need for Speed: Underground 2 (DirectX 9.0)~~ — Verified on Windows XP (Wine 6.0.4 D3D9 passthrough, full audio with native DirectSound, 35–50 FPS matching 30 Hz engine design)
+- ~~3DMark03 (DirectX 9.0)~~ — Verified on Windows XP (Wine 6.0.4 D3D9 passthrough, 44,715 3DMarks at 1024x768)
 - Half-Life 2 (Source Engine / SM2.0)
 - Max Payne (DirectX 8.0)
 - Diablo II and StarCraft (DirectDraw / DirectX 7)
