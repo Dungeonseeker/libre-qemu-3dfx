@@ -120,8 +120,14 @@ for dll in "$STAGE"/win32/wine/*/*.dll "$STAGE"/win32/wrapfx/*.dll \
 done
 [ "$FAIL" = "0" ] && echo "PE checks OK" || exit 1
 
+# ── Ensure DOS CRLF line endings on Windows text/batch files ────────
+for f in $(find "$STAGE" -type f \( -name "*.txt" -o -name "*.bat" -o -name "*.inf" -o -name "*.ini" -o -name "*.reg" \)); do
+    sed -i 's/\r$//; s/$/\r/' "$f"
+done
+
 # ── Normalize mtime for bit-for-bit reproducible ISO ────────────────
 find "$STAGE" -exec touch -h -d "@$SOURCE_DATE_EPOCH" {} +
+
 
 # ── ISO (Joliet for Win9x-era readability + Rock Ridge) ──────────────
 xorriso -as mkisofs -J -R -l -V FREEADDONS -o "$OUT" "$STAGE" 2>&1 | tail -n 3

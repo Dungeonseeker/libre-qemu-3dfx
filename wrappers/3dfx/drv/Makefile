@@ -1,8 +1,9 @@
 FXLIB=../../fxlib
 CROSS?=
 CC=$(CROSS)gcc
-CFLAGS=-march=x86-64-v2 -mtune=generic -mfpmath=sse
-CFLAGS+=-pipe -I$(FXLIB) -Wall -Wextra -Werror
+CFLAGS=-march=i686 -mtune=generic
+CFLAGS+=-pipe -I$(FXLIB) -Wall -Wextra -Werror -mcrtdll=msvcrt
+
 OUTDIR?=build
 
 all: instdrv.exe fxmemmap.vxd fxptl.sys shasum
