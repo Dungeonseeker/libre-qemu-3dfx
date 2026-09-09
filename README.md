@@ -1,6 +1,8 @@
 # QEMU MESA GL/3Dfx Glide Pass-Through
-Copyright (C) 2018-2025<br>
-KJ Liew \<liewkj@yahoo.com\>
+Copyright (C) 2018-2026<br>
+https://github.com/wordgitet/libre-qemu-3dfx<br>
+https://www.winehq.org
+
 ## Content
     qemu-0/hw/3dfx      - Overlay for QEMU source tree to add 3Dfx Glide pass-through device model
     qemu-1/hw/mesa      - Overlay for QEMU source tree to add MESA GL pass-through device model
@@ -15,7 +17,7 @@ KJ Liew \<liewkj@yahoo.com\>
 Witness, experience and share your thoughts on modern CPU/GPU prowess for retro Windows games on Apple Silicon macOS, modern Windows and Linux. Most games can be installed and played in pristine condition without the hassle of hunting down unofficial, fan-made patches to play them on modern Windows or Linux/Wine.
 - YouTube channel (https://www.youtube.com/@qemu-3dfx/videos)
 - VOGONS forums (https://www.vogons.org)
-- Wiki (https://github.com/kjliew/qemu-3dfx/wiki)
+- Wiki (https://github.com/wordgitet/libre-qemu-3dfx/wiki)
 ## Building QEMU
 
 ### Host Build Dependencies
