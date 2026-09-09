@@ -12,6 +12,7 @@ pc-bios
 
 # FreeAddons build staging, caches, and generated ISOs
 freeaddons/*.iso
+freeaddons/*.sha256
 freeaddons/stage-fetch/
 freeaddons/iso-staging/
 freeaddons/scripts/.pkgcache-*/
