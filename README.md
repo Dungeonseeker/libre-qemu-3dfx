@@ -4,9 +4,11 @@ https://github.com/wordgitet/libre-qemu-3dfx<br>
 https://www.winehq.org
 
 ## Content
+    freeaddons/         - FreeAddons guest additions ISO build toolchain
     qemu-0/hw/3dfx      - Overlay for QEMU source tree to add 3Dfx Glide pass-through device model
     qemu-1/hw/mesa      - Overlay for QEMU source tree to add MESA GL pass-through device model
     scripts/sign_commit - Script for stamping commit id
+    wined3d-windows/    - Universal WineD3D build system (DirectDraw, D3D8, D3D9)
     wrappers/3dfx       - Glide wrappers for supported guest OS/environment (DOS/Windows/DJGPP/Linux)
     wrappers/mesa       - MESA GL wrapper for supported guest OS/environment (Windows)
 ## Patch
@@ -43,8 +45,8 @@ Witness, experience and share your thoughts on modern CPU/GPU prowess for retro 
 
 ```bash
 mkdir ~/myqemu && cd ~/myqemu
-git clone https://github.com/kjliew/qemu-3dfx.git
-cd qemu-3dfx
+git clone https://github.com/wordgitet/libre-qemu-3dfx.git
+cd libre-qemu-3dfx
 wget https://download.qemu.org/qemu-9.2.2.tar.xz
 tar xf qemu-9.2.2.tar.xz
 cd qemu-9.2.2
@@ -55,7 +57,19 @@ mkdir ../build && cd ../build
 ../qemu-9.2.2/configure --target-list=i386-softmmu,x86_64-softmmu --enable-sdl && make -j$(nproc)
 ```
 
-## Building Guest Wrappers
+## Running QEMU & Guest Setup
+See [`docs/usage.md`](docs/usage.md) for full instructions on:
+- Launching QEMU with hardware pass-through (`-display sdl` and `-M pc`).
+- Installing drivers and Glide acceleration via `freeaddons.iso`.
+- Configuring Direct3D 8/9, Glide, and OpenGL games.
+
+## Building FreeAddons ISO
+To build the all-in-one guest additions ISO (`freeaddons.iso`):
+```bash
+./freeaddons/scripts/assemble-iso.sh
+```
+
+## Building Guest Wrappers (Optional)
 **Requirements:**
  - `base-devel` (make, sed, xxd etc.)
  - `gendef, shasum`
@@ -64,28 +78,17 @@ mkdir ../build && cd ../build
  - `{i586,i686}-pc-msdosdjgpp` cross toolchain (`binutils, gcc, dxe3gen`) for DJGPP DXE wrappers
 <br>
 
-    $ cd ~/myqemu/qemu-3dfx/wrappers/3dfx
-    $ mkdir build && cd build
-    $ bash ../../../scripts/conf_wrapper
-    $ make && make clean
+```bash
+cd wrappers/3dfx
+mkdir build && cd build
+bash ../../../scripts/conf_wrapper
+make
 
-    $ cd ~/myqemu/qemu-3dfx/wrappers/mesa
-    $ mkdir build && cd build
-    $ bash ../../../scripts/conf_wrapper
-    $ make && make clean
-
-## Installing Guest Wrappers
-**For Win9x/ME:**  
- - Copy `FXMEMMAP.VXD` to `C:\WINDOWS\SYSTEM`  
- - Copy `GLIDE.DLL`, `GLIDE2X.DLL` and `GLIDE3X.DLL` to `C:\WINDOWS\SYSTEM`  
- - Copy `GLIDE2X.OVL` to `C:\WINDOWS`  
- - Copy `OPENGL32.DLL` to `Game Installation` folders
-
-**For Win2k/XP:**  
- - Copy `FXPTL.SYS` to `%SystemRoot%\system32\drivers`  
- - Copy `GLIDE.DLL`, `GLIDE2X.DLL` and `GLIDE3X.DLL` to `%SystemRoot%\system32`  
- - Run `INSTDRV.EXE`, require Administrator Priviledge  
- - Copy `OPENGL32.DLL` to `Game Installation` folders
+cd ../../mesa
+mkdir build && cd build
+bash ../../../scripts/conf_wrapper
+make
+```
  
 ## DirectDraw & Direct3D (WineD3D) Acceleration
 Universal WineD3D libraries provide hardware-accelerated DirectDraw, Direct3D 8, and Direct3D 9 for Windows 95, 98, ME, 2000, and XP guests inside QEMU.
