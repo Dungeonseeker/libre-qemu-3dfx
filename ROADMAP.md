@@ -31,3 +31,9 @@ TODO for Beta:
 ### Optimizations
 - Verify Wine 7.x and 8.x profiles for Shader Model 3.0 games
 - Optimize D3DKMT surface locks at high resolutions
+
+### Future (Post-1.0)
+- Standalone GUI Frontend (ImGui or Qt) for VM configuration and game profiles
+- Integration with external retro launchers
+- Host UX and packaging optimizations for Windows and macOS
+
