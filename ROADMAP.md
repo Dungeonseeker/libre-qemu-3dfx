@@ -2,6 +2,11 @@
 
 TODO for Beta:
 
+### Core & Kernel Drivers
+- [x] Eliminate proprietary binary driver blobs (`fxptl.xxd`, `fxmemmap.xxd`) with clean-room C implementations:
+  - [`fxptl.c`](wrappers/3dfx/drv/fxptl.c): Windows NT/2000/XP WDM kernel driver mapping MMIO/FIFO physical memory. Verified under full 3DMark03 load.
+  - [`fxmemmap.c`](wrappers/3dfx/drv/fxmemmap.c): Windows 9x dynamic VxD driver compiled natively via Open Watcom `wcl386`/`wlink`.
+
 ### Game Testing
 - 3DMark2001 SE on Windows 98 and Windows XP (DirectX 8.1)
 - ~~Need for Speed: Underground 2 (DirectX 9.0)~~ — Verified on Windows XP (Wine 6.0.4 D3D9 passthrough, full audio with native DirectSound, 35–50 FPS matching 30 Hz engine design)
