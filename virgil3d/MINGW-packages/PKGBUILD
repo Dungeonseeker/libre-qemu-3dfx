@@ -39,7 +39,7 @@ build() {
   python -m pip install --upgrade pip
   pip install $_venv
   MSYS2_ARG_CONV_EXCL="--prefix" \
-  CFLAGS="-march=x86-64-v2 -mtune=generic -flto=auto -O3" \
+  CFLAGS="-march=x86-64 -mtune=generic -flto=auto -O2" \
   meson setup --prefix="${MINGW_PREFIX}" build # -Dtests=true
   ninja -C build
 }

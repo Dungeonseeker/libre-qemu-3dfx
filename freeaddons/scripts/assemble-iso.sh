@@ -1,5 +1,5 @@
 #!/bin/sh
-# assemble-iso.sh — stage the Freeaddons tree and emit freeaddons.iso.
+# assemble-iso.sh - stage the Freeaddons tree and emit freeaddons.iso.
 #
 # Usage: assemble-iso.sh [--skip-fetch]
 #   Without --skip-fetch, fetch-msys.sh and fetch-drivers.sh run first.
@@ -144,14 +144,14 @@ fi
 
 # SOURCES.txt provenance
 {
-    echo "Freeaddons — provenance log (reproducible inputs)"
+    echo "Freeaddons - provenance log (reproducible inputs)"
     echo "Built: $(date -u -d "@$SOURCE_DATE_EPOCH" '+%Y-%m-%d %H:%M:%S UTC' 2>/dev/null || date -u '+%Y-%m-%d %H:%M:%S UTC')"
     echo ""
     echo "== in-tree builds =="
-    echo "win32/wrapfx <- qemu-3dfx wrappers/3dfx (open source, this repo)"
-    echo "win32/wrapgl <- qemu-3dfx wrappers/mesa (open source, this repo)"
-    echo "win32/wine/<ver> <- wined3d-windows output/<ver> (open source, this repo)"
-    echo "win32/wine/ddthru <- freeaddons/src/ddthru (open source, this repo)"
+    echo "win32/wrapfx <- qemu-3dfx wrappers/3dfx (free software, this repo)"
+    echo "win32/wrapgl <- qemu-3dfx wrappers/mesa (free software, this repo)"
+    echo "win32/wine/<ver> <- wined3d-windows output/<ver> (free software, this repo)"
+    echo "win32/wine/ddthru <- freeaddons/src/ddthru (free software, this repo)"
     echo "win32/openglide <- qemu-xtra openglide (LGPL, kjliew/qemu-xtra)"
     echo ""
     echo "== fetched third-party =="

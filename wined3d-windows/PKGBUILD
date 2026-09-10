@@ -42,7 +42,7 @@ _detect_mode() {
 build() {
     local mode
     mode=$(_detect_mode "$pkgver")
-    msg2 "Wine $pkgver — build mode: $mode, build msvcrt.dll: $_build_msvcrt"
+    msg2 "Wine $pkgver - build mode: $mode, build msvcrt.dll: $_build_msvcrt"
 
     cd "$srcdir/wine-${pkgver}"
 
@@ -77,7 +77,7 @@ _build_modern() {
     make -j"$(nproc)" "${targets[@]}"
 }
 
-# ── Legacy mode (Wine 1.x–6.x) ────────────────────────────────────
+# Legacy mode (Wine 1.x to 6.x)
 _build_legacy() {
     msg "Building Wine $pkgver (legacy winegcc mode)"
 
@@ -87,7 +87,7 @@ _build_legacy() {
         --without-fontconfig --without-freetype --without-gphoto \
         --without-gstreamer --without-opencl \
         --without-pcap --without-pulse --without-sane --without-oss \
-        CFLAGS="-O3 -march=i686 -msse4.2 -mtune=generic -fcommon -DWINE_NOWINSOCK -DUSE_WIN32_OPENGL -DUSE_WIN32_VULKAN -DNDEBUG" \
+        CFLAGS="-O2 -march=i686 -mtune=generic -fcommon -DWINE_NOWINSOCK -DUSE_WIN32_OPENGL -DUSE_WIN32_VULKAN -DNDEBUG" \
         LDFLAGS="-static-libgcc"
 
     make -j"$(nproc)" tools/makedep

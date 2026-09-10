@@ -59,8 +59,17 @@ rsync -r ../qemu-0/hw/3dfx ../qemu-1/hw/mesa ./hw/
 patch -p0 -i ../00-qemu92x-mesa-glide.patch
 bash ../scripts/sign_commit
 mkdir ../build && cd ../build
+export CFLAGS="-march=x86-64 -mtune=generic -O2 -pipe -fno-plt"
+export CXXFLAGS="-march=x86-64 -mtune=generic -O2 -pipe -fno-plt"
 ../qemu-9.2.2/configure --target-list=i386-softmmu,x86_64-softmmu --enable-sdl && make -j$(nproc)
 ```
+
+Portable release builds must use the x86-64 v1 baseline above
+(`-march=x86-64 -mtune=generic`), with no native, v2/v3/v4, or AVX flags,
+so one binary runs from Skylake through Zen 5 class CPUs.
+For a one step local build plus AVX leak check plus tarball and sha256,
+run `sh scripts/build-qemu-portable.sh --host=arch`.
+Debian/Ubuntu and Windows builds follow in that order, macOS is pre-1.0 post beta.
 
 ## Running QEMU & Guest Setup
 See [`docs/usage.md`](docs/usage.md) for full instructions on:
@@ -97,7 +106,7 @@ make
  
 ## DirectDraw & Direct3D (WineD3D) Acceleration
 Universal WineD3D libraries provide hardware-accelerated DirectDraw, Direct3D 8, and Direct3D 9 for Windows 95, 98, ME, 2000, and XP guests inside QEMU.
-- **100% Free and Open Source (LGPL v2.1)**: Built from clean Wine sources with built-in D3DKMT texture emulation and single-threaded passthrough hooks.
+- **100% free software (LGPL v2.1)**: Built from clean Wine sources with built-in D3DKMT texture emulation and single-threaded passthrough hooks.
 - **Pre-packaged in Freeaddons**: Mount `freeaddons.iso` as a CD-ROM in QEMU and run:
   ```bat
   freeaddons-get install 6.0.4 d3d9
