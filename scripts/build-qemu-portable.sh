@@ -104,12 +104,24 @@ for bin in $BINARIES; do
         continue
     fi
     HITS=$(objdump -d "$bin" 2>/dev/null | grep -E "vmovaps|vmovups|vpxor|vpadd|vbroadcast| zmm[0-9]| ymm[0-9]" || true)
-    if [ -n "$HITS" ]; then
-        echo "ERROR: AVX encoding detected in $bin" | tee -a "$BUILD_LOG"
+    if [ -z "$HITS" ]; then
+        echo "OK: no AVX leak in $bin" | tee -a "$BUILD_LOG"
+        continue
+    fi
+    # Attribute each hit to its enclosing function. Upstream QEMU ships
+    # two runtime CPUID dispatched helpers (buffer_zero_avx2 in
+    # util/bufferiszero.c, xbzrle_encode_buffer_avx512 in
+    # migration/xbzrle.c) that never execute on hosts without AVX2 or
+    # AVX512. Hits confined to those are safe. Anything else is a real
+    # portability leak and fails the build.
+    BAD=$(objdump -d "$bin" 2>/dev/null | awk '/^[0-9a-f]+ <.*>:$/ {func=$2} /vmovaps|vmovups|vpxor|vpadd|vbroadcast| zmm[0-9]| ymm[0-9]/ {print func}' | grep -v -e "<buffer_zero_avx2>:" -e "<xbzrle_encode_buffer_avx512>:" || true)
+    if [ -n "$BAD" ]; then
+        echo "ERROR: AVX encoding outside dispatched helpers in $bin:" | tee -a "$BUILD_LOG"
         echo "$HITS" | head -10 | tee -a "$BUILD_LOG"
         FAIL=1
     else
-        echo "OK: no AVX leak in $bin" | tee -a "$BUILD_LOG"
+        echo "OK: AVX use in $bin confined to runtime dispatched helpers:" | tee -a "$BUILD_LOG"
+        echo "$HITS" | head -5 | tee -a "$BUILD_LOG"
     fi
 done
 if [ "$FAIL" != "0" ]; then
