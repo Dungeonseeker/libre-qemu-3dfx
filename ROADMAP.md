@@ -24,6 +24,7 @@ TODO for Beta:
 ### Host Packages
 - Arch Linux AUR package (libre-qemu-3dfx-git)
 - Debian/Ubuntu package or AppImage
+- Publish portable pre-built QEMU binaries per release (x86-64 baseline without restrictive CPUID or march flags, compatible across Skylake through Zen 5 class CPUs)
 - Forward-port 3dfx/Mesa patches to future QEMU 10.x
 
 ### Guest UX & Installers
@@ -41,4 +42,5 @@ TODO for Beta:
 - Standalone GUI Frontend (ImGui or Qt) for VM configuration and game profiles
 - Integration with external retro launchers
 - Host UX and packaging optimizations for Windows and macOS
+- Evaluate Aaru disc image format support
 
