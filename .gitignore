@@ -18,6 +18,7 @@ freeaddons/iso-staging/
 freeaddons/scripts/.pkgcache-*/
 freeaddons/src/ddthru/*.dll
 freeaddons/src/ddthru/*.def
+freeaddons/src/ac97/*.sys
 
 # Wrapper build artifacts
 wrappers/**/build/
