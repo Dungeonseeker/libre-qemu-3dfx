@@ -103,7 +103,7 @@ for bin in $BINARIES; do
         FAIL=1
         continue
     fi
-    HITS=$(objdump -d "$bin" 2>/dev/null | grep -E "vmovaps|vmovups|vpxor|vpadd|vbroadcast| zmm[0-9]| ymm[0-9]" || true)
+    HITS=$(objdump -d "$bin" 2>/dev/null | grep -E "vmovaps|vmovups|vpxor|vpadd|vbroadcast|ymm[0-9]|zmm[0-9]" || true)
     if [ -z "$HITS" ]; then
         echo "OK: no AVX leak in $bin" | tee -a "$BUILD_LOG"
         continue
@@ -114,7 +114,7 @@ for bin in $BINARIES; do
     # migration/xbzrle.c) that never execute on hosts without AVX2 or
     # AVX512. Hits confined to those are safe. Anything else is a real
     # portability leak and fails the build.
-    BAD=$(objdump -d "$bin" 2>/dev/null | awk '/^[0-9a-f]+ <.*>:$/ {func=$2} /vmovaps|vmovups|vpxor|vpadd|vbroadcast| zmm[0-9]| ymm[0-9]/ {print func}' | grep -v -e "<buffer_zero_avx2>:" -e "<xbzrle_encode_buffer_avx512>:" || true)
+    BAD=$(objdump -d "$bin" 2>/dev/null | awk '/^[0-9a-f]+ <.*>:$/ {sym=$2} /vmovaps|vmovups|vpxor|vpadd|vbroadcast|ymm[0-9]|zmm[0-9]/ {print sym}' | grep -v -e "<buffer_zero_avx2>:" -e "<xbzrle_encode_buffer_avx512>:" || true)
     if [ -n "$BAD" ]; then
         echo "ERROR: AVX encoding outside dispatched helpers in $bin:" | tee -a "$BUILD_LOG"
         echo "$HITS" | head -10 | tee -a "$BUILD_LOG"
