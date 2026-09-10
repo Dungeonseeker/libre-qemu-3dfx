@@ -27,6 +27,20 @@ Witness, experience and share your thoughts on modern CPU/GPU prowess for retro 
 - Wiki (https://github.com/wordgitet/libre-qemu-3dfx/wiki)
 ## Building QEMU
 
+### Easiest path: download a release build
+Skip compiling. Grab the latest release tarball plus sha256 from
+https://github.com/wordgitet/libre-qemu-3dfx/releases, then verify and run:
+```bash
+sha256sum -c libre-qemu-3dfx-*.tar.xz.sha256
+tar xf libre-qemu-3dfx-*.tar.xz
+./libre-qemu-3dfx-*/qemu-system-x86_64 --version
+```
+To build everything from source in one command instead:
+```bash
+sh scripts/build-all.sh --host=arch
+sh scripts/smoke-test.sh
+```
+
 ### Host Build Dependencies
 - **Debian / Ubuntu**:
   ```bash
