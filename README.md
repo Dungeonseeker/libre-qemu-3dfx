@@ -1,7 +1,6 @@
 # QEMU MESA GL/3Dfx Glide Pass-Through
-Copyright (C) 2018-2026<br>
-https://github.com/wordgitet/libre-qemu-3dfx<br>
-https://www.winehq.org
+Original work Copyright (C) 2018-2020 KJ Liew (kjliew/qemu-3dfx)
+Modifications and additions Copyright (C) 2024-2026, https://github.com/wordgitet/libre-qemu-3dfx
 
 ## Content
     freeaddons/         - FreeAddons guest additions ISO build toolchain
