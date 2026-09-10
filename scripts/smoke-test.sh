@@ -50,6 +50,10 @@ bad() { echo "FAIL: $1"; FAIL=$((FAIL + 1)); }
 
 BIN_I386="$QEMU_DIR/qemu-system-i386"
 BIN_X64="$QEMU_DIR/qemu-system-x86_64"
+if [ ! -x "$BIN_X64" ] && [ -x "$QEMU_DIR/qemu-system-x86_64.exe" ]; then
+    BIN_I386="$QEMU_DIR/qemu-system-i386.exe"
+    BIN_X64="$QEMU_DIR/qemu-system-x86_64.exe"
+fi
 if [ -x "$BIN_I386" ] && [ -x "$BIN_X64" ]; then
     ok "binaries present"
 else

@@ -2,11 +2,17 @@
 # build-qemu-portable.sh - reproducible portable QEMU build for libre-qemu-3dfx.
 #
 # Baseline: x86-64 v1, no native, no v2/v3/v4, no AVX leak.
-# Host order: Arch first, then Debian/Ubuntu, then Windows (MSYS2 mingw64).
-# macOS (Intel plus Apple Silicon) is pre-1.0 post beta, handled last.
+# Host order: Arch first, then Debian/Ubuntu, then Windows (MSYS2 mingw64
+# native build). macOS (Intel plus Apple Silicon) is pre-1.0 post beta.
 #
 # Usage:
 #   sh scripts/build-qemu-portable.sh [--host=arch|debian|windows] [--qemu-ver=9.2.2] [--jobs=N]
+#   The windows mode runs inside an MSYS2 mingw64 shell and needs:
+#     pacman -S base-devel mingw-w64-x86_64-toolchain ninja meson
+#       mingw-w64-x86_64-glib2 mingw-w64-x86_64-pixman mingw-w64-x86_64-SDL2
+#       wget rsync p7zip zip python-distlib (or pip user install, see below)
+#   If QEMU configure complains about a missing Python distlib module:
+#     pip install --user --break-system-packages distlib
 #   The script exports pinned CFLAGS/CXXFLAGS, configures, builds,
 #   verifies no AVX/AVX2/AVX512 instructions leaked in, and stages a
 #   tarball plus sha256 plus build log (same provenance style as
@@ -44,8 +50,18 @@ mkdir -p "$OUTDIR" "$LOGDIR"
 # Pinned portable baseline: x86-64 v1 with generic tuning.
 # Skylake through Zen 5 class CPUs all implement this. Anything newer
 # (v2/v3/v4, native, AVX) would break the portable promise.
+# Same flags on MSYS2 mingw64: its gcc targets x86-64 Windows natively.
 export CFLAGS="-march=x86-64 -mtune=generic -O2 -pipe -fno-plt"
 export CXXFLAGS="-march=x86-64 -mtune=generic -O2 -pipe -fno-plt"
+
+# Windows binaries carry .exe; tarball becomes a zip for that host.
+EXE=""
+ARCHIVE="tar.xz"
+if [ "$HOST_KIND" = "windows" ]; then
+    EXE=".exe"
+    command -v zip > /dev/null 2>&1 && ARCHIVE="zip"
+fi
+BINARIES="qemu-system-i386$EXE qemu-system-x86_64$EXE"
 
 STAMP=$(date -u '+%Y%m%d')
 BUILD_LOG="$LOGDIR/qemu-${QEMU_VER}-${HOST_KIND}-${STAMP}.log"
@@ -95,7 +111,6 @@ make -j"$JOBS" 2>&1 | tee -a "$BUILD_LOG"
 # qemu-bundle staging dir of symlinks that dangle until link succeeds,
 # so resolve -f and fail on anything missing.
 echo "Running AVX leak check ..." | tee -a "$BUILD_LOG"
-BINARIES="qemu-system-i386 qemu-system-x86_64"
 FAIL=0
 for bin in $BINARIES; do
     if [ ! -f "$bin" ]; then
@@ -147,7 +162,15 @@ cp "$BUILD_LOG" "$STAGE/BUILD.log"
     echo "Commit: $(git -C "$ROOT" rev-parse HEAD 2>/dev/null || echo unknown)"
 } > "$STAGE/SOURCES.txt"
 cd "$OUTDIR"
-tar -cJf "${PKG}.tar.xz" "$PKG"
-sha256sum "${PKG}.tar.xz" > "${PKG}.tar.xz.sha256"
-cat "${PKG}.tar.xz.sha256"
-echo "Done: $OUTDIR/${PKG}.tar.xz"
+if [ "$ARCHIVE" = "zip" ]; then
+    rm -f "${PKG}.zip"
+    zip -qr "${PKG}.zip" "$PKG"
+    sha256sum "${PKG}.zip" > "${PKG}.zip.sha256"
+    cat "${PKG}.zip.sha256"
+    echo "Done: $OUTDIR/${PKG}.zip"
+else
+    tar -cJf "${PKG}.tar.xz" "$PKG"
+    sha256sum "${PKG}.tar.xz" > "${PKG}.tar.xz.sha256"
+    cat "${PKG}.tar.xz.sha256"
+    echo "Done: $OUTDIR/${PKG}.tar.xz"
+fi

@@ -32,6 +32,32 @@ qemu-system-i386.exe ^
   -boot c
 ```
 
+#### Enable WHPX first (one time, admin prompt)
+WHPX needs the Windows Hypervisor Platform feature. Either toggle
+"Windows Hypervisor Platform" under Turn Windows features on or off,
+or run as Administrator:
+```cmd
+dism.exe /Online /Enable-Feature:HypervisorPlatform /All
+```
+Reboot, then confirm with `systeminfo` (Hyper-V Requirements section).
+
+#### Build on Windows (MSYS2 mingw64 shell)
+```bash
+pacman -S base-devel mingw-w64-x86_64-toolchain ninja meson mingw-w64-x86_64-glib2 mingw-w64-x86_64-pixman mingw-w64-x86_64-SDL2 wget rsync p7zip zip
+sh scripts/build-qemu-portable.sh --host=windows
+```
+Portable baseline is the same x86-64 v1 as Linux. Output is a zip plus
+sha256 under `dist-qemu-portable/`.
+
+#### Windows test checklist (about two minutes, no guest needed)
+1. `qemu-system-x86_64.exe --version` prints 9.2.2.
+2. `qemu-system-x86_64.exe -display help` lists sdl.
+3. `qemu-system-x86_64.exe -accel help` lists whpx.
+4. `sh scripts/smoke-test.sh --qemu-dir=dist-qemu-portable/<pkg>` passes.
+5. Boot the XP or 98 guest with the WHPX command above. Report CPU
+   model, `systeminfo` hypervisor lines, and any crash dialog text.
+   A 3DMark03 smoke run on XP is ideal when a guest is handy.
+
 ---
 
 ## 2. Guest Installation (freeaddons.iso)
