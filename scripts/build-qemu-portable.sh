@@ -72,7 +72,15 @@ if [ ! -d "qemu-${QEMU_VER}" ]; then
 fi
 cd "qemu-${QEMU_VER}"
 rsync -r ../qemu-0/hw/3dfx ../qemu-1/hw/mesa ./hw/ 2>&1 | tee -a "$BUILD_LOG"
-patch -p0 -N -i ../00-qemu92x-mesa-glide.patch 2>&1 | tee -a "$BUILD_LOG" || true
+# The patch step must run exactly once per fresh tree. A rerun after
+# sign_commit touched nearby lines makes patch -N misdetect the vl.c
+# hunk and apply it a second time (duplicate feature block), so guard
+# on the marker the patch itself adds.
+if grep -q "featuring qemu-3dfx@" system/vl.c 2>/dev/null; then
+    echo "Patch already applied, skipping." | tee -a "$BUILD_LOG"
+else
+    patch -p0 -i ../00-qemu92x-mesa-glide.patch 2>&1 | tee -a "$BUILD_LOG"
+fi
 bash ../scripts/sign_commit 2>&1 | tee -a "$BUILD_LOG" || true
 
 mkdir -p "../build-qemu-${QEMU_VER}-${HOST_KIND}"
@@ -83,14 +91,18 @@ echo "Building with $JOBS jobs ..." | tee -a "$BUILD_LOG"
 make -j"$JOBS" 2>&1 | tee -a "$BUILD_LOG"
 
 # Portability self check: fail on AVX/AVX2/AVX512 vector encodings.
+# Check the real top level binaries only. The build tree also holds a
+# qemu-bundle staging dir of symlinks that dangle until link succeeds,
+# so resolve -f and fail on anything missing.
 echo "Running AVX leak check ..." | tee -a "$BUILD_LOG"
-BINARIES=$(find . -name "qemu-system-i386" -o -name "qemu-system-x86_64" | head -5)
-if [ -z "$BINARIES" ]; then
-    echo "ERROR: no qemu-system binaries found" | tee -a "$BUILD_LOG"
-    exit 1
-fi
+BINARIES="qemu-system-i386 qemu-system-x86_64"
 FAIL=0
 for bin in $BINARIES; do
+    if [ ! -f "$bin" ]; then
+        echo "ERROR: missing expected binary $bin" | tee -a "$BUILD_LOG"
+        FAIL=1
+        continue
+    fi
     HITS=$(objdump -d "$bin" 2>/dev/null | grep -E "vmovaps|vmovups|vpxor|vpadd|vbroadcast| zmm[0-9]| ymm[0-9]" || true)
     if [ -n "$HITS" ]; then
         echo "ERROR: AVX encoding detected in $bin" | tee -a "$BUILD_LOG"

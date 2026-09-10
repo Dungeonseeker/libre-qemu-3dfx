@@ -9,6 +9,10 @@ private/
 # Local build trees
 myqemu/
 pc-bios
+qemu-[0-9]*/
+qemu-*.tar.xz
+build-qemu-*/
+dist-qemu-portable/
 
 # FreeAddons build staging, caches, and generated ISOs
 freeaddons/*.iso
