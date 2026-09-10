@@ -3,9 +3,7 @@
 TODO for Beta:
 
 ### Core & Kernel Drivers
-- [x] Eliminate proprietary binary driver blobs (`fxptl.xxd`, `fxmemmap.xxd`) with clean-room C implementations:
-  - [`fxptl.c`](wrappers/3dfx/drv/fxptl.c): Windows NT/2000/XP WDM kernel driver mapping MMIO/FIFO physical memory. Verified under full 3DMark03 load.
-  - [`fxmemmap.c`](wrappers/3dfx/drv/fxmemmap.c): Windows 9x dynamic VxD driver compiled natively via Open Watcom `wcl386`/`wlink`.
+- ~~Eliminate proprietary binary driver blobs (fxptl.xxd, fxmemmap.xxd) with clean-room C implementations~~ — Implemented free fxptl.c (WDM NT kernel driver) and fxmemmap.c (Open Watcom dynamic VxD), verified under full 3DMark03 load
 
 ### Game Testing
 - 3DMark2001 SE on Windows 98 and Windows XP (DirectX 8.1)
@@ -29,6 +27,8 @@ TODO for Beta:
 - Forward-port 3dfx/Mesa patches to future QEMU 10.x
 
 ### Guest UX & Installers
+- ~~Bundle free 2D display driver for Windows 9x~~ — Integrated VMDisp9x (v1.2025.0.119b, MIT) with dedicated QEMU Standard VGA miniport (qemumini.drv / qemumini.vxd)
+- ~~Bundle free AC'97 audio driver for Windows 98/2000/XP~~ — Integrated Intel 810 / ICH AC'97 WDM driver (MIT, ReactOS / WDK 7.1) for QEMU -device AC97
 - One-click autorun installer on freeaddons.iso
 - Bundle USB tablet mouse driver for Windows 98
 - Winetray utility for switching WineD3D versions per game

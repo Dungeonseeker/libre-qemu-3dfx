@@ -48,10 +48,14 @@ mkdir -p "$DESTDIR/drivers/box/vbox"
     bsdtar -xf "$CACHE/VBoxGuestAdditions_7.0.10.iso" \
         -C "$DESTDIR/drivers/box/vbox" VBoxWindowsAdditions-x86.exe
 
-# ── Proprietary Win9x OEM Drivers ────────────────────────────────────
-# Proprietary legacy drivers (LSI SYM_HI SCSI, SigmaTel STAC9700 AC97,
-# Bochs VBE) are excluded from this libre script. Users who require them
-# can use fetch-win98-oem-drivers.sh to fold them into a local build.
+# ── VMDisp9x Display Driver for Win9x (MIT, JHRobotics/vmdisp9x) ────
+# Replaces proprietary Bochs VBE display driver. Includes dedicated
+# qemumini.drv and qemumini.vxd for QEMU Standard VGA (-vga std).
+VMDISP_URL=https://github.com/JHRobotics/vmdisp9x/releases/download/v1.2025.0.119/vmdisp9x-1.2025.0.119b-driver-2d.zip
+get $VMDISP_URL vmdisp9x-1.2025.0.119b-driver-2d.zip
+note "drivers/display/vmdisp9x <- VMDisp9x v1.2025.0.119b (MIT, github.com/JHRobotics/vmdisp9x)"
+mkdir -p "$DESTDIR/drivers/display/vmdisp9x"
+7z x -y -o"$DESTDIR/drivers/display/vmdisp9x" "$CACHE/vmdisp9x-1.2025.0.119b-driver-2d.zip" > /dev/null
 
 # ── VirtIO guest floppy (virtio-win 0.1.173, last era with XP + .vfd) ─
 VIRTIO_BASE=https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/archive-virtio/virtio-win-0.1.173-9
