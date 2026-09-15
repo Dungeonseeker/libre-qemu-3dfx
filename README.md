@@ -1,10 +1,5 @@
 # QEMU MESA GL/3Dfx Glide Pass-through for QEMU
 
-Copyright (C) 2018-2025<br>
-KJ Liew <liewkj@yahoo.com><br>
-https://github.com/kjliew/qemu-3dfx
-
-Additional Addons & Modifications<br>
 Copyright (C) 2024-2026<br>
 https://github.com/wordgitet/libre-qemu-3dfx
 
@@ -130,5 +125,4 @@ Universal WineD3D libraries provide hardware-accelerated DirectDraw, Direct3D 8,
 ## License & Credits
 - **QEMU**: GNU General Public License (GPL)
 - **Wine / WineD3D**: GNU Lesser General Public License (LGPL v2.1)
-- **qemu-3dfx**: OpenGLide, Glide, and MESA GL pass-through for QEMU guests by [@kjliew](https://github.com/kjliew/qemu-3dfx)
 - **wined3d-windows**: Standalone build system, compatibility shims, and passthrough hooks by [@startergo](https://github.com/startergo/wined3d-windows)
