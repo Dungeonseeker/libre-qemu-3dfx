@@ -1,7 +1,9 @@
 # QEMU MESA GL/3Dfx Glide Pass-through for QEMU
 
-Copyright (C) 2024-2026<br>
-https://github.com/wordgitet/libre-qemu-3dfx
+This code is provided as is, I claim no copyright to any of it.
+
+Its simply an archive of code that was removed by someone who had no rights to do so and is archived for
+preservation purposes only.
 
 ## Content
     freeaddons/         - FreeAddons guest additions ISO build toolchain
@@ -19,12 +21,11 @@ https://github.com/wordgitet/libre-qemu-3dfx
 Witness, experience and share your thoughts on modern CPU/GPU prowess for retro Windows games on Apple Silicon macOS, modern Windows and Linux. Most games can be installed and played in pristine condition without the hassle of hunting down unofficial, fan-made patches to play them on modern Windows or Linux/Wine.
 - YouTube channel (https://www.youtube.com/@qemu-3dfx/videos)
 - VOGONS forums (https://www.vogons.org)
-- Wiki (https://github.com/wordgitet/libre-qemu-3dfx/wiki)
 ## Building QEMU
 
 ### Easiest path: download a release build
 Skip compiling. Grab the latest release tarball plus sha256 from
-https://github.com/wordgitet/libre-qemu-3dfx/releases, then verify and run:
+then verify and run:
 ```bash
 sha256sum -c libre-qemu-3dfx-*.tar.xz.sha256
 tar xf libre-qemu-3dfx-*.tar.xz
@@ -59,7 +60,7 @@ sh scripts/smoke-test.sh
 
 ```bash
 mkdir ~/myqemu && cd ~/myqemu
-git clone https://github.com/wordgitet/libre-qemu-3dfx.git
+git clone https://github.com/dungeonseeker/libre-qemu-3dfx.git
 cd libre-qemu-3dfx
 wget https://download.qemu.org/qemu-9.2.2.tar.xz
 tar xf qemu-9.2.2.tar.xz
